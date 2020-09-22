@@ -1,0 +1,85 @@
+You may find it useful to get a brief background on what is going on with the URLDownloadToFile
+API and how it interacts with the IBindStatusCallback that forms the basis of the attached class.
+
+If so, here it is... and I will keep it brief.
+
+You use the URLDownloadToFile API (which ships with Internet Explorer) to do the download work.
+URLDownloadToFile does the heavy lifting and you can implement its use with only 2 lines of code.
+1 - to declare the function and 2 - to call the function with the URL of the requested file.
+HOWEVER, if you do so you are done doing anything else until the download is completed... and
+you will get no notification of how things are progressing...
+
+Enter: IBindStatusCallback
+
+By implementing the IBindStatusCallback you can get to the fundamentals of what is going on with
+the download (ie. progress in bytes, total file size requested... etc.).  With a little work it
+is easy to calculate progress vs. time to get download rates - or do a myriad of other things.
+Primarily, people seem to be interested in using the IBindStatusCallback_OnProgress event to
+update a progress bar so their users can be assured that something is happening.
+
+Once you have a general understanding of what's going on during IBinding, you can tear this dude
+apart and use what you find as you wish.  SO, without going into all of the events, here's what
+happens:
+
+(I am assuming here that you have followed the instructions for implementing the type library
+and have set up the code for use as in the example included.  BY THE WAY, if you want to see how
+the different events fire in the IBindStatusCallback events, un-remark the code in them to print
+their action to the demo debug window.)
+
+There are 8 events exposed in IBindStatusCallback.  4 of these events MUST fire in order to achieve
+a download: _GetBindInfo, _OnStartBinding, _OnProgress, _OnStopBinding.
+The other 4 events: _OnDataAvailable, _GetPriority, _OnLowResource, _OnObjectAvailable
+may fire, or may NEVER fire depending on what happens in the _GetBindInfo event.  All 8 events
+must remain exposed!
+
+NOT ALWAYS, but generally, here is the order of how things happen:
+
+1) You call URLDownloadToFile providing a valid URL to the file you want and the path/filename
+   you want to save it as.
+
+   (If you have an internet connection!) Your computer makes a request to the server of that URL
+   for the requested file.
+
+--> the _GetBindInfo phase begins...
+   
+   The computers agree (or don't!) to let you have the file and exchange size and other protocol
+   information regarding the file.
+
+--> the _OnStartBinding phase begins...
+
+   If the requested file is small, your computer may be able to receive the entire file in one 
+   large chunk.  More likely, it will receive the file in many smaller chunks and when it has
+   received enough chunks to constitute the entire file, it will bind the chunks together and
+   save them to your disk.  Till it gets all the chunks...
+
+--> the _OnProgress events...
+
+   will keep you informed as to how much of the file you have virtually buffered... and how
+   much you should expect to end up with (in terms of bytes).
+
+   When all of the file chunks are finally collected or the transaction times out and your
+   computer finally gives up on the download, your computer will fire...
+
+--> the _OnStopBinding event
+
+   and save your file (if the download was successful!).  Whether or not the download was
+   successful, it is in the _OnStopBinding event where you will find out what the result was.
+   ---------------------------------------------------------------------------------------------
+
+SO, a typical small down load will probably look something like this (in terms of events):
+
+   _GetBindInfo --> _OnStartBinding --> _OnProgress --> _OnProgress --> _OnStopBinding
+
+It is, therefore, in these 4 events where you will be able to harvest the most useful information.
+
+I have probably boiled this down to too simple a level, but maybe it will help some of you?
+If you want more information on the IUnknown interfaces, Ibinding, etc., I refer you to:
+
+http://msdn.microsoft.com/library/default.asp?url=/workshop/networking/moniker/reference/ifaces/ibindstatuscallback/ibindstatuscallback.asp
+
+Best regards to all AND STILL spelling COOL with a C,
+CptnVic
+
+
+
+

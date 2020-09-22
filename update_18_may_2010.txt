@@ -1,0 +1,21 @@
+Update: 18 May, 2010
+
+Repaired: BINDF_GETNEWESTVERSION (noted long ago and correction posted in comments... now repaired in class code.)
+
+Repaired: IBindStatusCallback_OnStopBinding Sub
+	Previously allowed S_OK to be processed as a handled error... when it was not an error.
+	Thanks to David for letting me know about this behavior... sorry it took so long to get fixed.	
+
+Added: S_OK As Long = &H0 declaration (see above)
+	Actually, S_OK is declared in the TLB... here again for your notice.
+
+Class_Terminate:
+	Added a class terminate sub... just to be safe.
+	Simarly, added a form unload to remove class safely.
+
+
+
+
+
+
+
